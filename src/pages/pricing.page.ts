@@ -67,6 +67,8 @@ export class PricingPage extends BasePage {
     }
 
     async verifyPlanTextVisible(text: string | RegExp) {
-        await expect.soft(this.page.getByText(text, { exact: false }).first()).toBeVisible();
+        // Use a more specific locator to avoid hidden nav elements
+        // Look for headings or paragraphs, not just any text which might resolve to hidden dropdown links
+        await expect.soft(this.page.locator('h1, h2, h3, .pricing-col').getByText(text).first()).toBeVisible();
     }
 }
