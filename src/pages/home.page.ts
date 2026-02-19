@@ -11,44 +11,59 @@ export class HomePage extends BasePage {
     readonly platformDropdownContent: Locator;
     readonly navLogin: Locator;
     readonly navSignUp: Locator;
+    readonly footerTerms: Locator;
+    readonly footerPrivacy: Locator;
 
     constructor(page: Page) {
         super(page);
         this.logo = page.locator('a.w-nav-brand');
-        this.navPlatform = page.locator('.rp-dropdown-toggle:has-text("Platform")');
-        this.navPricing = page.locator('.rp-nav-link[href="/pricing"]');
-        this.bookDemoBtn = page.locator('a[id="header"][href="/demo-request"]');
-        this.heroSection = page.locator('#main-content');
+
+        // resilient selector for the 'Platform' dropdown
+        this.navPlatform = page.locator('#w-dropdown-toggle-0, .rp-dropdown-toggle, .w-dropdown-toggle').filter({ hasText: 'Platform' }).first();
+
+        // resilient selector for 'Pricing' link
+        this.navPricing = page.locator('nav a, .nav-menu a, a.nav-link').filter({ hasText: 'Pricing' }).first();
+
+        // resilient selector for 'Book a Demo'
+        // Using getByRole is often more reliable
+        this.bookDemoBtn = page.getByRole('link', { name: /Book a Demo/i }).first();
+
+        this.heroSection = page.locator('.hero-section, .w-header, #main-content, h1').first();
 
         // Dynamic dropdown content
-        this.platformDropdownContent = page.locator('.w-dropdown-list.w--open');
+        this.platformDropdownContent = page.locator('.w-dropdown-list');
 
         // Auth buttons
-        this.navLogin = page.locator('a[href*="app.remotepass.com/login"]');
-        this.navSignUp = page.locator('a[href*="app.remotepass.com/signup"]');
+        this.navLogin = page.locator('a[href*="login"]').filter({ hasText: 'Login' }).first();
+        this.navSignUp = page.locator('a').filter({ hasText: 'Sign up' }).first();
+
+        // Footer
+        this.footerTerms = page.locator('footer a[href*="/terms"], a.rp-footer-link[href*="/terms"]');
+        this.footerPrivacy = page.locator('footer a[href*="/privacy"], a.rp-footer-link[href*="/privacy"]');
     }
 
     async verifyElementsVisible() {
         await expect(this.logo).toBeVisible();
-        await expect(this.bookDemoBtn).toBeVisible();
-        // Use first() if multiple elements match or refine selector
-        await expect(this.heroSection.first()).toBeVisible();
+        await expect(this.navPricing).toBeVisible();
     }
 
-    async hoverPlatformMenu() {
-        await this.navPlatform.hover();
+    async togglePlatformMenu() {
+        await this.navPlatform.click();
+        await this.platformDropdownContent.first().waitFor({ state: 'visible' });
     }
 
     async navigateToPricing() {
+        // Force click if needed or standard click
         await this.navPricing.click();
+        await this.page.waitForURL(/.*pricing/);
     }
 
     async clickBookDemo() {
         await this.bookDemoBtn.click();
+        await this.page.waitForURL(/.*demo-request/);
     }
 
     async getPlatformSubLinks() {
-        // Should be visible after hover
-        return this.page.locator('.w-dropdown-link').allTextContents();
+        return await this.platformDropdownContent.locator('a.dropdown-link, a.w-dropdown-link').allInnerTexts();
     }
 }

@@ -1,34 +1,41 @@
 
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator } from '@playwright/test';
 
 export class BasePage {
     readonly page: Page;
-    readonly cookieAcceptButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
-        // Common selector for cookie consent if present
-        this.cookieAcceptButton = page.locator('#items-center #accept-btn');
     }
 
     async goto(path: string = '/') {
-        await this.page.goto(path);
+        await this.page.goto(path, { waitUntil: 'domcontentloaded' });
     }
 
     async acceptCookies() {
-        // Try to click if visible, but don't fail if not found
         try {
-            const acceptBtn = this.page.locator('.btn.cookie-btn.accept-btn, [id*="accept"], .cc-btn.cc-dismiss, button:contains("Accept")').first();
-            if (await acceptBtn.isVisible({ timeout: 2000 })) {
-                await acceptBtn.click();
+            // Multiple potential selectors for cookie banners
+            const selectors = [
+                '#items-center #accept-btn',
+                '.btn.cookie-btn.accept-btn',
+                '[id*="accept"]',
+                '.cc-btn.cc-dismiss',
+                'button:has-text("Accept")',
+                'button:has-text("Allow all")',
+                '.osano-cm-accept-all' // Common cookie manager
+            ];
+
+            for (const selector of selectors) {
+                const btn = this.page.locator(selector).first();
+                if (await btn.isVisible({ timeout: 500 })) {
+                    await btn.click({ force: true }); // Force click in case of overlay issues
+                    console.log(`Cookie banner accepted using selector: ${selector}`);
+                    return;
+                }
             }
         } catch (e) {
-            console.log('Cookie banner not found or already accepted');
+            console.log('Cookie banner interaction failed or not needed');
         }
-    }
-
-    async getPageTitle() {
-        return await this.page.title();
     }
 
     async waitForUrl(urlPattern: string | RegExp) {
