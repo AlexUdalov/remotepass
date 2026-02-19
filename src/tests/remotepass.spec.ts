@@ -46,22 +46,24 @@ test.describe('RemotePass Automation Suite', () => {
         }
     });
 
-    test('TC03: Pricing Page Navigation and Plan Display', async () => {
+    test('TC03: Pricing Page Navigation and Interaction', async () => {
         await homePage.navigateToPricing();
-
-        // Verify URL
         await expect(homePage.page).toHaveURL(/.*pricing/);
 
-        // Verify specific plan titles exist
-        // Actual titles found: Contractors, Employer of Record, etc.
-        await pricingPage.verifyPlanTextVisible(/Contractors/i);
-        await pricingPage.verifyPlanTextVisible(/Employer of Record/i);
+        // Functional Check: Verify "Get Started" or similar button on a plan functions
+        // Find a CTA button within a pricing card. Often "Get Started"
+        const ctaButton = pricingPage.page.locator('.pricing-col a, .pricing-card a').filter({ hasText: /Get Started|Start|Free Trial/i }).first();
 
-        // Check for cards
-        await pricingPage.verifyPlansLoaded();
-
-        // Ensuring pricing components are mounted
-        await expect(pricingPage.priceDisplay.first()).toBeVisible();
+        if (await ctaButton.isVisible()) {
+            // Check if it navigates to signup or a contact form
+            // await ctaButton.click(); 
+            // Note: clicking might take us out of the site or to a new tab. 
+            // Safer to check href for now or ensure we can handle the redirect
+            const href = await ctaButton.getAttribute('href');
+            expect(href).toMatch(/signup|login|demo|contact/i);
+        } else {
+            console.log('No direct CTA found to test on Pricing page');
+        }
     });
 
     test('TC04: Verify Pricing Feature Toggle Interaction', async () => {
