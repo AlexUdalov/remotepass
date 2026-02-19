@@ -13,16 +13,20 @@ export class HomePage extends BasePage {
     readonly navSignUp: Locator;
     readonly footerTerms: Locator;
     readonly footerPrivacy: Locator;
+    readonly mobileMenuBtn: Locator;
 
     constructor(page: Page) {
         super(page);
         this.logo = page.locator('a.w-nav-brand');
 
+        // Mobile menu toggle
+        this.mobileMenuBtn = page.locator('.menu-button.w-nav-button, [aria-label="menu"]');
+
         // resilient selector for the 'Platform' dropdown
-        this.navPlatform = page.locator('#w-dropdown-toggle-0, .rp-dropdown-toggle, .w-dropdown-toggle').filter({ hasText: 'Platform' }).first();
+        this.navPlatform = page.locator('nav').getByText(/Platform/i).locator('visible=true');
 
         // resilient selector for 'Pricing' link
-        this.navPricing = page.locator('nav a, .nav-menu a, a.nav-link').filter({ hasText: 'Pricing' }).first();
+        this.navPricing = page.locator('a[href*="/pricing"]:visible').filter({ hasText: /^Pricing$/i }).first();
 
         // resilient selector for 'Book a Demo'
         // Using getByRole is often more reliable
@@ -52,7 +56,14 @@ export class HomePage extends BasePage {
      * Uses a click action as hover is unreliable for this specific implementation.
      */
     async togglePlatformMenu() {
+        if (await this.mobileMenuBtn.isVisible()) {
+            await this.mobileMenuBtn.click();
+            await expect(this.navPlatform.first()).toBeVisible();
+        }
         await this.navPlatform.click();
+
+        // On mobile, dropdown might be different, but content should be visible
+        // We use a robust wait
         await this.platformDropdownContent.first().waitFor({ state: 'visible' });
     }
 
@@ -60,9 +71,18 @@ export class HomePage extends BasePage {
      * Navigates to the Pricing page via the navigation menu.
      */
     async navigateToPricing() {
-        // Force click if needed or standard click
-        await this.navPricing.click();
-        await this.page.waitForURL(/.*pricing/);
+        let pricingLink = this.page.locator('a[href*="/pricing"]:visible').filter({ hasText: /^Pricing$/i }).first();
+
+        if (!(await pricingLink.isVisible()) && await this.mobileMenuBtn.isVisible()) {
+            await this.mobileMenuBtn.click();
+            await expect(pricingLink).toBeVisible();
+            pricingLink = this.page.locator('a[href*="/pricing"]:visible').filter({ hasText: /^Pricing$/i }).first();
+        }
+
+        await expect(pricingLink).toBeVisible();
+        await pricingLink.scrollIntoViewIfNeeded();
+        await pricingLink.click();
+        await this.page.waitForURL(/\/pricing(?:[/?#]|$)/);
     }
 
     /**

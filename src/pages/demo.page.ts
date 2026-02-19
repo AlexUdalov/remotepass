@@ -3,6 +3,7 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
 export class DemoPage extends BasePage {
+    readonly formIframe: Locator;
     readonly firstNameInput: Locator;
     readonly emailInput: Locator;
     readonly submitButton: Locator;
@@ -10,8 +11,7 @@ export class DemoPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        // HubSpot form is inside an iframe with a specific ID structure
-        // We use a wildcard ID selector to be safe, but prioritize the one found
+        this.formIframe = page.locator('#hs-form-iframe-0, iframe[id^="hs-form-iframe"]').first();
         const formFrame = page.frameLocator('#hs-form-iframe-0, iframe[id^="hs-form-iframe"]').first();
 
         this.firstNameInput = formFrame.locator('input[name="firstname"], input[id^="firstname-"]');
@@ -23,17 +23,10 @@ export class DemoPage extends BasePage {
     }
 
     async fillForm(firstName: string, email: string) {
-        // Often these forms load lazily, wait for frame element
-        await this.page.waitForTimeout(3000); // Give HubSpot time to init
-
-        try {
-            await this.firstNameInput.waitFor({ state: 'visible', timeout: 15000 });
-            await this.firstNameInput.fill(firstName);
-            await this.emailInput.fill(email);
-        } catch (e) {
-            console.error('Failed to find inputs in HubSpot frame');
-            throw e;
-        }
+        await expect(this.formIframe).toBeVisible({ timeout: 15000 });
+        await expect(this.firstNameInput).toBeVisible({ timeout: 15000 });
+        await this.firstNameInput.fill(firstName);
+        await this.emailInput.fill(email);
     }
 
     async submit() {

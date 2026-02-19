@@ -21,28 +21,27 @@ export class BasePage {
      * Fails silently if no banner is found to prevent test interruption.
      */
     async acceptCookies() {
-        try {
-            // Multiple potential selectors for cookie banners
-            const selectors = [
-                '#items-center #accept-btn',
-                '.btn.cookie-btn.accept-btn',
-                '[id*="accept"]',
-                '.cc-btn.cc-dismiss',
-                'button:has-text("Accept")',
-                'button:has-text("Allow all")',
-                '.osano-cm-accept-all' // Common cookie manager
-            ];
+        // Multiple potential selectors for cookie banners
+        const selectors = [
+            '#items-center #accept-btn',
+            '.btn.cookie-btn.accept-btn',
+            '.cc-btn.cc-dismiss',
+            '.osano-cm-accept-all',
+            'button:has-text("Accept")',
+            'button:has-text("Allow all")'
+        ];
 
-            for (const selector of selectors) {
-                const btn = this.page.locator(selector).first();
-                if (await btn.isVisible({ timeout: 500 })) {
-                    await btn.click({ force: true }); // Force click in case of overlay issues
-                    console.log(`Cookie banner accepted using selector: ${selector}`);
+        for (const selector of selectors) {
+            const btn = this.page.locator(selector).first();
+            try {
+                if (await btn.isVisible({ timeout: 700 })) {
+                    await btn.click();
+                    await btn.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => null);
                     return;
                 }
+            } catch {
+                // Banner implementations vary; keep trying known selectors.
             }
-        } catch (e) {
-            console.log('Cookie banner interaction failed or not needed');
         }
     }
 

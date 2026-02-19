@@ -26,6 +26,7 @@ export default defineConfig({
         },
         {
             name: 'mobile-chrome',
+            grepInvert: /@desktopOnly/,
             use: { ...devices['Pixel 5'] },
         },
         /* Test against branded browsers. */

@@ -8,15 +8,17 @@ export class PricingPage extends BasePage {
     readonly allFeaturesToggle: Locator;
     readonly detailedTable: Locator;
     readonly priceDisplay: Locator;
+    readonly getStartedCtas: Locator;
 
     constructor(page: Page) {
         super(page);
         // Generic pricing card selector
         this.planCards = page.locator('.pricing-col, .pricing-card');
+        this.getStartedCtas = page.getByRole('link', { name: /^Get started$/i });
 
         // Feature Toggles
-        this.keyFeaturesToggle = page.locator('.rp-pricing-toggle-link').nth(0);
-        this.allFeaturesToggle = page.locator('.rp-pricing-toggle-link').nth(1);
+        this.keyFeaturesToggle = page.getByRole('link', { name: /^Key Features$/i }).first();
+        this.allFeaturesToggle = page.getByRole('link', { name: /^All Features$/i }).first();
 
         this.detailedTable = page.locator('.detailed-view, .features-grid, .pricing-table');
 
@@ -25,25 +27,12 @@ export class PricingPage extends BasePage {
     }
 
     async verifyPlansLoaded() {
-        // Look for visible pricing cards only, ignore hidden ones
-        const visibleCards = this.planCards.filter({ hasNot: this.page.locator('.w-condition-invisible') });
+        await expect(this.page.getByRole('heading', { name: /^Pricing$/i })).toBeVisible();
+        await expect(this.page.getByRole('heading', { name: /Contractors/i }).first()).toBeVisible();
+        await expect(this.getStartedCtas.first()).toBeVisible();
 
-        let count = 0;
-        try {
-            await visibleCards.first().waitFor({ state: 'visible', timeout: 5000 });
-            count = await visibleCards.count();
-        } catch (e) {
-            console.log('Plan cards not immediately visible or selector mismatch, checking for fallback text...');
-        }
-
-        if (count === 0) {
-            // Fallback check: "Startups", "Premium", etc. are often h3 or h2
-            await expect(this.page.getByRole('heading', { name: /Contractors/i }).first()).toBeVisible();
-            // Also check that at least some price is visible
-            await expect(this.priceDisplay.first()).toBeVisible();
-        } else {
-            expect(count).toBeGreaterThan(0);
-        }
+        const ctaCount = await this.getStartedCtas.count();
+        expect(ctaCount).toBeGreaterThan(2);
     }
 
     async toggleAllFeatures() {
@@ -56,19 +45,18 @@ export class PricingPage extends BasePage {
     }
 
     async verifyToggleInteraction() {
-        // Use the feature toggles since Monthly/Yearly was not found
-        if (await this.keyFeaturesToggle.isVisible() && await this.allFeaturesToggle.isVisible()) {
-            await this.allFeaturesToggle.click();
-            // Optional: check for a visual change or class
+        await expect(this.keyFeaturesToggle).toBeVisible();
+        await expect(this.allFeaturesToggle).toBeVisible();
 
-            await this.keyFeaturesToggle.click();
-            // Optional: check for a visual change or class
-        }
+        await this.allFeaturesToggle.click();
+        await expect(this.allFeaturesToggle).toHaveClass(/w--current|active|current|selected/);
+        await expect(this.page.getByRole('heading', { name: /What’s included\?/i })).toBeVisible();
+
+        await this.keyFeaturesToggle.click();
+        await expect(this.keyFeaturesToggle).toHaveClass(/w--current|active|current|selected/);
     }
 
     async verifyPlanTextVisible(text: string | RegExp) {
-        // Use a more specific locator to avoid hidden nav elements
-        // Look for headings or paragraphs, not just any text which might resolve to hidden dropdown links
-        await expect.soft(this.page.locator('h1, h2, h3, .pricing-col').getByText(text).first()).toBeVisible();
+        await expect(this.page.locator('h1, h2, h3, .pricing-col').getByText(text).first()).toBeVisible();
     }
 }
