@@ -121,4 +121,25 @@ test.describe('RemotePass Automation Suite', () => {
         await expect(homePage.footerPrivacy.first()).toBeVisible();
     });
 
+    test('TC08: Verify Critical Network Resources', async ({ page }) => {
+        // Intercept network requests to ensure critical assets load successfully
+        const failedRequests: string[] = [];
+
+        page.on('response', response => {
+            const url = response.url();
+            const status = response.status();
+            // Check for failures on main domain resources, ignoring potential third-party tracking blocks
+            if (url.includes('remotepass.com') && status >= 400) {
+                failedRequests.push(`${url} (${status})`);
+            }
+        });
+
+        await homePage.goto('/');
+
+        // Wait for network to be idle-ish to catch any late loads
+        await page.waitForLoadState('networkidle');
+
+        expect(failedRequests, `Failed network requests: ${failedRequests.join(', ')}`).toHaveLength(0);
+    });
+
 });
