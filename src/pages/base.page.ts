@@ -8,10 +8,18 @@ export class BasePage {
         this.page = page;
     }
 
+    /**
+     * Navigates to a specific path on the website.
+     * @param path The relative path to navigate to (default is root '/').
+     */
     async goto(path: string = '/') {
         await this.page.goto(path, { waitUntil: 'domcontentloaded' });
     }
 
+    /**
+     * Attempts to accept cookies using a list of known selectors.
+     * Fails silently if no banner is found to prevent test interruption.
+     */
     async acceptCookies() {
         try {
             // Multiple potential selectors for cookie banners

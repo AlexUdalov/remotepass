@@ -69,3 +69,19 @@ npx playwright show-report
 
 - **Headless Mode**: If tests fail due to bot detection (Cloudflare), run with `--headed` or adjust `userAgent` in `playwright.config.ts`.
 - **Timeouts**: Default action timeout is set to 30s. If network is slow, increase in config.
+
+## CI/CD Integration
+
+This project includes a GitHub Actions workflow (`.github/workflows/playwright.yml`) that:
+- Installs Node.js dependencies.
+- Installs Playwright browsers.
+- Runs the full test suite on every push and pull request to `main`.
+- Uploads an HTML report as an artifact for failed tests.
+
+## Design Decisions
+
+- **Page Object Model (POM)**: Used to enhance code reusability and maintainability.
+- **Robust Selectors**: Prioritized `getByRole` and text-based locators to align with user behavior and accessibility standards.
+- **Network Validation**: Added `TC08` to ensure critical business value by verifying that main resources load successfully (200 OK).
+- **Mobile Testing**: Configured `mobile-chrome` (Pixel 5) in `playwright.config.ts` to ensure responsiveness.
+- **HubSpot Iframe Support**: Implemented strict frame locators to handle third-party form injection reliably.
