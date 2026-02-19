@@ -6,18 +6,18 @@ This project contains a Playwright + TypeScript test automation framework for [R
 ## Project Structure
 
 - `src/pages/`: Page Object Models (POM) for encapsulated logic.
-  - `access.page.ts`: Base page with common strategies.
+  - `base.page.ts`: Base page with common strategies.
   - `home.page.ts`: Homepage interactions.
   - `pricing.page.ts`: Pricing page logic.
   - `demo.page.ts`: Demo request form validation.
 - `src/tests/`: Test specifications.
-  - `remotepass.spec.ts`: The main test suite covering 7 scenarios.
+  - `remotepass.spec.ts`: The main test suite covering 9 scenarios.
 - `src/utils/`: Helper utilities (currently empty, scalable for future).
 - `playwright.config.ts`: Configuration for timeouts, reporting, and browser settings.
 
 ## Prerequisites
 
-- Node.js (v16+)
+- Node.js (v18+)
 - NPM
 
 ## Setup
@@ -64,6 +64,7 @@ npx playwright show-report
 6. **TC06**: Login Redirection - Verifies standard login link behavior (new tab vs same tab).
 7. **TC07**: Footer Links - Checks stability of legal links in the footer.
 8. **TC08**: Network Resources - Verifies critical assets load with 200 OK status.
+9. **TC09**: Country Guide Data Explorer - Verifies country search, navigation, and key data visibility.
 
 ## Troubleshooting
 
@@ -75,8 +76,8 @@ npx playwright show-report
 This project includes a GitHub Actions workflow (`.github/workflows/playwright.yml`) that:
 - Installs Node.js dependencies.
 - Installs Playwright browsers.
-- Runs the full test suite on every push and pull request to `main`.
-- Uploads an HTML report as an artifact for failed tests.
+- Runs the full test suite on every push and pull request to `main` and `master`.
+- Uploads an HTML report as an artifact for each run.
 
 ## Design Decisions
 
