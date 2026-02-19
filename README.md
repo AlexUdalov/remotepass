@@ -57,12 +57,13 @@ npx playwright show-report
 ## Test Scenarios
 
 1. **TC01**: Homepage Load & Critical Elements - Verifies core branding and navigation availability.
-2. **TC02**: Platform Dropdown - Validates submenu interactions (Note: May require headed mode if bot detection is active).
-3. **TC03**: Pricing Page - Checks navigation to pricing and plan visibility.
-4. **TC04**: Pricing Toggle - Interacts with Monthly/Yearly toggles.
-5. **TC05**: Demo Form - Submits empty form to verify HubSpot validation messages.
+2. **TC02**: Platform Dropdown - Validates submenu interactions (mouse click & navigation).
+3. **TC03**: Pricing Page - Checks plan visibility & "Get Started" functional CTA.
+4. **TC04**: Pricing Toggle - Interacts with Feature toggles.
+5. **TC05**: Demo Form - Submits empty form to verify HubSpot validation messages (handles iframes).
 6. **TC06**: Login Redirection - Verifies standard login link behavior (new tab vs same tab).
 7. **TC07**: Footer Links - Checks stability of legal links in the footer.
+8. **TC08**: Network Resources - Verifies critical assets load with 200 OK status.
 
 ## Troubleshooting
 
